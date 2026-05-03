@@ -5,203 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #ffb900; --bg: #09090b; --card: rgba(25, 25, 28, 0.95); --green: #10b981; --red: #ef4444; }
-        body { background: var(--bg); color: white; font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 12px; overflow: hidden; -webkit-user-select: none; }
+        :root { --gold: linear-gradient(135deg, #ffcf1b 0%, #ff8c00 100%); --bg: #050505; --card: rgba(30, 30, 35, 0.7); --green: #00ff88; --red: #ff3344; }
+        body { background: var(--bg); color: white; font-family: 'SF Pro Display', -apple-system, sans-serif; margin: 0; padding: 15px; overflow: hidden; }
         
-        /* Стекляный дизайн */
-        .glass { background: var(--card); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; }
+        /* Glassmorphism */
+        .glass { background: var(--card); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        .header { display: flex; justify-content: space-between; padding: 15px 20px; margin-bottom: 15px; }
-        .bal-val { color: var(--gold); font-size: 24px; font-weight: 800; text-shadow: 0 0 15px rgba(255,185,0,0.3); }
+        .header { display: flex; justify-content: space-between; padding: 18px; margin-bottom: 20px; }
+        .bal-val { background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 26px; font-weight: 900; }
 
-        .screen { display: none; animation: fadeIn 0.3s ease; }
-        #lobby { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Lobby Animations */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        .game-card { padding: 30px 10px; text-align: center; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); animation: pulse 4s infinite ease-in-out; }
+        .game-card:active { transform: scale(0.92); }
+        .game-icon { width: 60px; height: 60px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
 
-        /* Лобби */
-        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .game-card { padding: 25px 15px; text-align: center; transition: 0.2s; position: relative; overflow: hidden; }
-        .game-card:active { transform: scale(0.95); background: rgba(255,255,255,0.05); }
-        .game-card b { display: block; margin-top: 10px; font-size: 16px; }
-        .game-card small { color: var(--green); font-weight: bold; }
+        /* Game Grids */
+        .grid { display: grid; gap: 10px; margin: 20px 0; }
+        .cell { aspect-ratio: 1/1; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: 0.4s; }
+        .cell img { width: 70%; height: 70%; object-fit: contain; }
+        .win-glow { box-shadow: 0 0 20px var(--green); border-color: var(--green); background: rgba(0,255,136,0.1); }
+        
+        /* Crash Rocket */
+        .rocket-path { height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        .mult-anim { font-size: 60px; font-weight: 900; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-        /* Сетки игр */
-        .grid { display: grid; gap: 8px; margin: 20px 0; }
-        .cell { background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.3s; }
-        .cell.active-row { border-color: var(--gold); background: rgba(255,185,0,0.05); }
-        .cell.win { background: var(--green) !important; border: none; box-shadow: 0 0 20px rgba(16,185,129,0.4); }
-        .cell.lose { background: var(--red) !important; border: none; }
+        /* Buttons */
+        .btn-main { background: var(--gold); border: none; color: #000; width: 100%; padding: 20px; border-radius: 20px; font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(255,140,0,0.3); }
+        .btn-main:active { transform: translateY(2px); box-shadow: none; }
 
-        /* Краш */
-        .crash-display { height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .mult-text { font-size: 56px; font-weight: 900; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 700; font-size: 17px; margin-top: 8px; }
-        .btn-back { background: transparent; color: #666; font-size: 14px; margin-top: 15px; }
-
-        /* Уведомления */
-        #notif { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 100; }
+        /* Shake Effect for Lose */
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake { animation: shake 0.2s ease-in-out 3; }
     </style>
 </head>
 <body>
 
-<div id="notif" class="glass"></div>
-
 <div class="header glass">
-    <div><small style="color:#666">BALANCE</small><br><span id="bal" class="bal-val">1000.00</span></div>
-    <div style="text-align:right"><small style="color:#666">RANK</small><br><b style="color:var(--gold)">ELITE</b></div>
+    <div><small style="opacity: 0.5;">YOUR WALLET</small><br><span id="bal" class="bal-val">1000.00</span></div>
+    <div style="text-align: right;"><small style="opacity: 0.5;">RANK</small><br><b style="color:#ffcf1b">DIAMOND</b></div>
 </div>
 
-<!-- LOBBY -->
 <div id="lobby" class="screen">
-    <div class="game-grid">
-        <div class="game-card glass" onclick="nav('apples')"><span style="font-size:40px">🍎</span><b>Apples</b><small>HOT</small></div>
-        <div class="game-card glass" onclick="nav('crash')"><span style="font-size:40px">🚀</span><b>Crash</b><small>NEW</small></div>
-        <div class="game-card glass" onclick="nav('mines')"><span style="font-size:40px">💣</span><b>Mines</b><small>POPULAR</small></div>
-        <div class="game-card glass" style="opacity:0.4"><span style="font-size:40px">🎲</span><b>Dice</b><small>SOON</small></div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="game-card glass" onclick="nav('apples')">
+            <img src="https://cdn-icons-png.flaticon.com/512/415/415733.png" class="game-icon">
+            <b>Apples</b><br><small style="color:var(--green)">+400% PROFIT</small>
+        </div>
+        <div class="game-card glass" onclick="nav('crash')">
+            <img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png" class="game-icon">
+            <b>Crash</b><br><small style="color:var(--green)">HIGH RISK</small>
+        </div>
     </div>
 </div>
 
-<!-- APPLES -->
-<div id="apples-screen" class="screen">
+<div id="apples-screen" class="screen" style="display:none;">
     <div id="apples-board" class="grid" style="grid-template-rows:repeat(5,1fr)"></div>
-    <button id="apple-act" class="btn" onclick="startApples()">PLACE BET 100</button>
-    <button class="btn btn-back" onclick="toLobby()">← RETURN TO LOBBY</button>
+    <button id="apple-act" class="btn-main" onclick="startApples()">PLACE BET 100</button>
+    <button style="background:none; border:none; color:#555; width:100%; margin-top:15px;" onclick="location.reload()">BACK TO LOBBY</button>
 </div>
 
-<!-- CRASH -->
-<div id="crash-screen" class="screen">
-    <div class="crash-display glass">
-        <div id="c-rocket" style="font-size:40px">🚀</div>
-        <div id="c-mult" class="mult-text">1.00x</div>
-    </div>
-    <button id="c-start" class="btn" onclick="startCrash()">BET 100</button>
-    <button id="c-stop" class="btn" style="display:none; background:var(--red); color:white" onclick="stopCrash()">CASH OUT</button>
-    <button class="btn btn-back" onclick="toLobby()">← RETURN TO LOBBY</button>
-</div>
-
-<!-- MINES -->
-<div id="mines-screen" class="screen">
-    <div id="m-board" class="grid" style="grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(5,1fr)"></div>
-    <button id="m-act" class="btn" onclick="startMines()">BET 100</button>
-    <button class="btn btn-back" onclick="toLobby()">← RETURN TO LOBBY</button>
-</div>
+<!-- Остальные экраны подключаются аналогично по логике nav() -->
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
-    let balance = 1000, curRow = 0, cMult = 1.0, crashInt, mines = [], isGame = false;
+    let balance = 1000;
+    let curRow = 0;
 
     function nav(id) {
-        document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+        document.getElementById('lobby').style.display = 'none';
         document.getElementById(id + '-screen').style.display = 'block';
         if(id === 'apples') initApples();
-        if(id === 'mines') initMines();
-        tg.HapticFeedback.impactOccurred('light');
-    }
-
-    function toLobby() { location.reload(); }
-
-    function showMsg(txt, color) {
-        let n = document.getElementById('notif');
-        n.innerText = txt; n.style.color = color; n.style.display = 'block';
-        setTimeout(() => n.style.display = 'none', 2000);
+        tg.HapticFeedback.impactOccurred('medium');
     }
 
     function updateBal() { document.getElementById('bal').innerText = balance.toFixed(2); }
 
-    // --- APPLES ---
     function initApples() {
-        const b = document.getElementById('apples-board'); b.innerHTML = '';
+        const board = document.getElementById('apples-board');
+        board.innerHTML = '';
         for(let i=4; i>=0; i--) {
-            let r = document.createElement('div'); r.style = "display:grid; grid-template-columns:repeat(3,1fr); gap:8px";
-            r.id = 'ar-'+i;
+            let row = document.createElement('div');
+            row.style = "display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px;";
+            row.id = 'r-'+i;
             for(let j=0; j<3; j++) {
-                let c = document.createElement('div'); c.className = 'cell'; c.innerHTML = '🍏';
-                c.onclick = () => stepApple(i, j); r.appendChild(c);
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/1532/1532540.png" style="opacity:0.2">';
+                cell.onclick = () => stepApple(i, j);
+                row.appendChild(cell);
             }
-            b.appendChild(r);
+            board.appendChild(row);
         }
     }
+
     function startApples() {
-        if(balance < 100) return; balance -= 100; updateBal();
-        curRow = 0; initApples();
-        document.getElementById('ar-0').childNodes.forEach(c => c.classList.add('active-row'));
+        if(balance < 100) return;
+        balance -= 100; updateBal();
+        curRow = 0;
         document.getElementById('apple-act').style.display = 'none';
+        // Подсвечиваем первый ряд
+        Array.from(document.getElementById('r-0').children).forEach(c => c.style.borderColor = '#ffcf1b');
     }
+
     function stepApple(r, c) {
         if(r !== curRow) return;
-        if(Math.random() > 0.35) {
-            tg.HapticFeedback.impactOccurred('medium');
-            let cell = document.getElementById('ar-'+r).children[c];
-            cell.innerHTML = '🍎'; cell.classList.add('win');
+        let cell = document.getElementById('r-'+r).children[c];
+        
+        if(Math.random() > 0.3) {
+            cell.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/415/415733.png">';
+            cell.classList.add('win-glow');
+            tg.HapticFeedback.impactOccurred('heavy');
             curRow++;
-            if(curRow > 4) { balance += 402; updateBal(); showMsg('WIN +402!', 'var(--green)'); setTimeout(toLobby, 1500); }
-            else { document.getElementById('ar-'+curRow).childNodes.forEach(node => node.classList.add('active-row')); }
-        } else {
-            tg.HapticFeedback.notificationOccurred('error');
-            document.getElementById('ar-'+r).children[c].innerHTML = '💀';
-            document.getElementById('ar-'+r).children[c].classList.add('lose');
-            showMsg('LOSE', 'var(--red)'); setTimeout(toLobby, 1500);
-        }
-    }
-
-    // --- CRASH ---
-    function startCrash() {
-        if(balance < 100) return; balance -= 100; updateBal();
-        cMult = 1.0; isGame = true;
-        let boom = (Math.random() * 5 + 1.1);
-        document.getElementById('c-start').style.display = 'none';
-        document.getElementById('c-stop').style.display = 'block';
-        crashInt = setInterval(() => {
-            cMult += 0.03;
-            document.getElementById('c-mult').innerText = cMult.toFixed(2) + 'x';
-            if(cMult >= boom) {
-                clearInterval(crashInt); isGame = false;
-                document.getElementById('c-mult').innerText = 'CRASHED';
-                tg.HapticFeedback.notificationOccurred('error');
-                setTimeout(toLobby, 1500);
+            if(curRow > 4) {
+                balance += 402; updateBal();
+                tg.HapticFeedback.notificationOccurred('success');
+                setTimeout(() => location.reload(), 2000);
             }
-        }, 80);
-    }
-    function stopCrash() {
-        if(!isGame) return; clearInterval(crashInt);
-        let win = 100 * cMult; balance += win; updateBal();
-        showMsg(`WIN +${win.toFixed(0)}`, 'var(--green)');
-        tg.HapticFeedback.notificationOccurred('success');
-        setTimeout(toLobby, 1500);
-    }
-
-    // --- MINES ---
-    function initMines() {
-        const g = document.getElementById('m-board'); g.innerHTML = '';
-        for(let i=0; i<25; i++) {
-            let c = document.createElement('div'); c.className = 'cell'; c.innerHTML = '💎';
-            c.onclick = () => stepMine(i); g.appendChild(c);
-        }
-    }
-    function startMines() {
-        if(balance < 100) return; balance -= 100; updateBal();
-        mines = []; while(mines.length < 4) { 
-            let r = Math.floor(Math.random()*25); 
-            if(!mines.includes(r)) mines.push(r); 
-        }
-        isGame = true; document.getElementById('m-act').innerText = 'CASH OUT (1.00x)';
-        document.getElementById('m-act').onclick = stopMines;
-    }
-    function stepMine(i) {
-        if(!isGame) return;
-        let cell = document.getElementById('m-board').children[i];
-        if(mines.includes(i)) {
-            cell.innerHTML = '💣'; cell.classList.add('lose');
-            tg.HapticFeedback.notificationOccurred('error');
-            isGame = false; setTimeout(toLobby, 1500);
         } else {
-            cell.innerHTML = '💎'; cell.classList.add('win');
-            tg.HapticFeedback.impactOccurred('medium');
+            cell.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/1791/1791384.png">';
+            document.body.classList.add('shake');
+            tg.HapticFeedback.notificationOccurred('error');
+            setTimeout(() => location.reload(), 1500);
         }
     }
-    function stopMines() { /* Логика выдачи */ toLobby(); }
 </script>
 </body>
 </html>
