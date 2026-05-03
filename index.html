@@ -5,126 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #f39c12; --bg: #1c1c1e; --card: #2c2c2e; }
-        body { background: var(--bg); color: white; font-family: -apple-system, sans-serif; margin: 0; padding: 15px; text-align: center; user-select: none; }
-        .header { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a3c; }
-        .balance { font-size: 24px; color: var(--gold); font-weight: bold; }
+        :root { --gold: #f39c12; --bg: #1c1c1e; --card: #2c2c2e; --green: #2ecc71; }
+        body { background: var(--bg); color: white; font-family: -apple-system, sans-serif; margin: 0; padding: 15px; overflow: hidden; }
         
-        .game-board { display: grid; grid-template-rows: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
-        .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; opacity: 0.5; pointer-events: none; }
-        .row.active { opacity: 1; pointer-events: auto; }
-        .cell { background: var(--card); border-radius: 10px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid #3a3a3c; }
-        .cell.win { border-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
-        .cell.lose { border-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        /* Меню */
+        #main-menu { display: block; }
+        .game-card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid #3a3a3c; display: flex; align-items: center; gap: 15px; }
+        .game-card img { width: 50px; height: 50px; }
+        
+        /* Игра */
+        #game-screen { display: none; text-align: center; }
+        .balance-box { background: var(--card); border-radius: 15px; padding: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--gold); }
+        .game-board { display: grid; grid-template-rows: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
+        .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; opacity: 0.3; }
+        .row.active { opacity: 1; }
+        .cell { background: var(--card); border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid #3a3a3c; }
+        .cell.win { border-color: var(--green); background: rgba(46, 204, 113, 0.1); }
+        
+        .coef-list { display: flex; flex-direction: column; justify-content: space-between; padding: 5px 0; font-weight: bold; color: var(--gold); font-size: 12px; }
 
-        .controls { background: var(--card); padding: 15px; border-radius: 15px; }
-        .btn-play { background: var(--gold); color: black; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 18px; }
-        .win-screen { display: none; color: var(--gold); font-weight: bold; margin-bottom: 10px; }
+        .btn { background: var(--gold); color: black; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn-cashout { background: var(--green); margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div style="font-size: 12px; color: #8e8e93;">ВАШ БАЛАНС</div>
-    <div class="balance" id="balance">1000.00</div>
+<!-- ГЛАВНАЯ СТРАНИЦА -->
+<div id="main-menu">
+    <h2 style="text-align: center; color: var(--gold);">CASINO LOBBY</h2>
+    <div class="game-card" onclick="showGame()">
+        <span style="font-size: 40px;">🍎</span>
+        <div>
+            <div style="font-weight: bold;">Apples of Fortune</div>
+            <div style="font-size: 12px; color: #8e8e93;">Множитель до x4.02</div>
+        </div>
+    </div>
+    <div class="game-card" style="opacity: 0.5;">
+        <span style="font-size: 40px;">🎲</span>
+        <div>
+            <div style="font-weight: bold;">Dice (Скоро)</div>
+            <div style="font-size: 12px; color: #8e8e93;">Технические работы</div>
+        </div>
+    </div>
 </div>
 
-<div id="win-msg" class="win-screen">ВЫ ВЫИГРАЛИ! +200.00</div>
+<!-- ЭКРАН ИГРЫ -->
+<div id="game-screen">
+    <div class="balance-box">
+        <div style="font-size: 10px; color: #8e8e93;">БАЛАНС</div>
+        <div id="balance" style="font-size: 20px; font-weight: bold; color: var(--gold);">1000.00</div>
+    </div>
 
-<div class="game-board" id="board">
-    <!-- Ряды создаются автоматически -->
-</div>
+    <div style="display: flex; gap: 10px;">
+        <div class="coef-list" id="coef-labels">
+            <div>x4.02</div><div>x3.11</div><div>x2.41</div><div>x1.93</div><div>x1.23</div>
+        </div>
+        <div class="game-board" id="board" style="flex-grow: 1;"></div>
+    </div>
 
-<div class="controls">
-    <button class="btn-play" id="action-btn" onclick="startGame()">ИГРАТЬ (100.00)</button>
+    <button class="btn" id="play-btn" onclick="startApples()">СТАВКА 100</button>
+    <button class="btn btn-cashout" id="cashout-btn" onclick="cashout()">ЗАБРАТЬ <span id="current-win">0</span></button>
+    <button class="btn" style="background: #3a3a3c; color: white;" onclick="showMenu()">НАЗАД В МЕНЮ</button>
 </div>
 
 <script>
     let tg = window.Telegram.WebApp;
-    tg.ready();
     tg.expand();
 
     let balance = 1000;
     let currentRow = 0;
-    const totalRows = 5;
+    let bet = 100;
+    const coefs = [1.23, 1.93, 2.41, 3.11, 4.02];
+
+    function showGame() {
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        initBoard();
+    }
+
+    function showMenu() {
+        document.getElementById('main-menu').style.display = 'block';
+        document.getElementById('game-screen').style.display = 'none';
+    }
 
     function initBoard() {
         const board = document.getElementById('board');
         board.innerHTML = '';
-        for (let i = totalRows - 1; i >= 0; i--) {
+        for (let i = 4; i >= 0; i--) {
             let row = document.createElement('div');
             row.className = 'row';
-            row.id = `row-${i}`;
+            row.id = `r-${i}`;
             for (let j = 0; j < 3; j++) {
                 let cell = document.createElement('div');
                 cell.className = 'cell';
-                cell.innerHTML = '❓';
-                cell.onclick = () => makeMove(i, j);
+                cell.innerHTML = '🍏';
+                cell.onclick = () => step(i, j);
                 row.appendChild(cell);
             }
             board.appendChild(row);
         }
     }
 
-    function startGame() {
-        if (balance < 100) return;
-        tg.HapticFeedback.impactOccurred('medium');
-        balance -= 100;
-        updateBalance();
+    function startApples() {
+        if (balance < bet) return;
+        balance -= bet;
+        updateUI();
         currentRow = 0;
         initBoard();
-        activateRow(0);
-        document.getElementById('action-btn').style.display = 'none';
-        document.getElementById('win-msg').style.display = 'none';
+        document.getElementById('r-0').classList.add('active');
+        document.getElementById('play-btn').style.display = 'none';
+        document.getElementById('cashout-btn').style.display = 'none';
     }
 
-    function activateRow(index) {
-        document.querySelectorAll('.row').forEach(r => r.classList.remove('active'));
-        let row = document.getElementById(`row-${index}`);
-        if (row) row.classList.add('active');
-    }
-
-    function makeMove(rowIndex, cellIndex) {
-        if (rowIndex !== currentRow) return;
-        
-        // Шанс 60% на успех
-        let isWin = Math.random() > 0.4;
-        let row = document.getElementById(`row-${rowIndex}`);
-        let cell = row.children[cellIndex];
+    function step(r, c) {
+        if (r !== currentRow) return;
+        let isWin = Math.random() > 0.33; // 66% шанс успеха
+        let cell = document.getElementById(`r-${r}`).children[c];
 
         if (isWin) {
             tg.HapticFeedback.notificationOccurred('success');
             cell.innerHTML = '🍎';
             cell.classList.add('win');
+            document.getElementById(`r-${r}`).classList.remove('active');
+            
+            let winAmount = bet * coefs[currentRow];
+            document.getElementById('current-win').innerText = winAmount.toFixed(2);
+            document.getElementById('cashout-btn').style.display = 'block';
+
             currentRow++;
-            if (currentRow >= totalRows) {
-                endGame(true);
+            if (currentRow <= 4) {
+                document.getElementById(`r-${currentRow}`).classList.add('active');
             } else {
-                activateRow(currentRow);
+                cashout(); // Авто-забор на максимуме
             }
         } else {
             tg.HapticFeedback.notificationOccurred('error');
-            cell.innerHTML = '🍏'; // Огрызок
-            cell.classList.add('lose');
-            endGame(false);
+            cell.innerHTML = '💀';
+            gameOver();
         }
     }
 
-    function endGame(isFullWin) {
-        document.getElementById('action-btn').style.display = 'block';
-        document.querySelectorAll('.row').forEach(r => r.classList.remove('active'));
-        if (isFullWin) {
-            balance += 500;
-            document.getElementById('win-msg').style.display = 'block';
-        }
-        updateBalance();
+    function cashout() {
+        let win = bet * coefs[currentRow - 1];
+        balance += win;
+        tg.HapticFeedback.impactOccurred('heavy');
+        gameOver();
     }
 
-    function updateBalance() {
+    function gameOver() {
+        updateUI();
+        document.getElementById('play-btn').style.display = 'block';
+        document.getElementById('cashout-btn').style.display = 'none';
+        currentRow = -1;
+    }
+
+    function updateUI() {
         document.getElementById('balance').innerText = balance.toFixed(2);
     }
-
-    initBoard();
 </script>
 </body>
 </html>
