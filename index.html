@@ -17,7 +17,7 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -31,187 +31,105 @@
             border-radius: 24px;
         }
 
-        /* Навигация */
-        .navbar {
-            display: flex;
-            justify-content: space-around;
-            padding: 15px;
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            z-index: 100;
-        }
+        /* Header */
+        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .balance-box { background: rgba(255, 255, 255, 0.03); padding: 10px 20px; border-radius: 15px; border: 1px solid rgba(255, 207, 27, 0.2); }
+        .balance-amount { background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 24px; font-weight: 900; }
 
-        .nav-item { font-size: 24px; opacity: 0.5; transition: 0.3s; }
-        .nav-item.active { opacity: 1; transform: scale(1.2); }
-
-        /* Шапка */
-        .header {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .balance-box {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 10px 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 207, 27, 0.2);
-        }
-
-        .balance-amount {
-            background: var(--gold);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 24px;
-            font-weight: 900;
-        }
-
-        /* Экраны */
-        .screen {
-            display: none;
-            padding: 20px;
-            height: 80vh;
-            overflow-y: auto;
-            animation: fadeIn 0.4s ease-out;
-        }
-
+        /* Screens */
+        .screen { display: none; padding: 20px; height: 80vh; overflow-y: auto; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Лобби */
+        /* Game Grid */
         .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .game-card {
-            padding: 30px 15px;
-            text-align: center;
-            transition: 0.2s;
-        }
-        .game-card:active { transform: scale(0.95); }
+        .game-card { padding: 30px 15px; text-align: center; transition: 0.2s; }
         .game-card i { font-size: 40px; display: block; margin-bottom: 10px; }
 
-        /* СЛОТЫ */
-        .slots-box {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 40px 10px;
-            margin: 20px 0;
-            position: relative;
-        }
-        .reel {
-            width: 80px;
-            height: 100px;
-            background: #000;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 45px;
-            border: 2px solid #222;
-        }
-        .reel.spinning { animation: blur 0.1s infinite; }
-        @keyframes blur { 0% { filter: blur(0); transform: translateY(-2px); } 50% { filter: blur(4px); } 100% { filter: blur(0); transform: translateY(2px); } }
+        /* Slots Engine */
+        .slots-box { display: flex; justify-content: center; gap: 10px; padding: 40px 10px; margin: 20px 0; position: relative; }
+        .reel { width: 80px; height: 100px; background: #000; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 45px; border: 2px solid #222; }
+        .spinning { animation: blur 0.1s infinite; }
+        @keyframes blur { 0% { filter: blur(0); } 50% { filter: blur(4px); } 100% { filter: blur(0); } }
 
-        /* Кнопки */
-        .btn-play {
-            background: var(--gold);
-            color: #000;
-            border: none;
-            width: 100%;
-            padding: 18px;
-            border-radius: 18px;
-            font-weight: 800;
-            font-size: 18px;
-            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
-        }
-
-        /* Профиль */
-        .profile-info { line-height: 1.6; }
-        .profile-info b { color: var(--gold); }
+        /* Buttons */
+        .btn-play { background: var(--gold); color: #000; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 800; font-size: 18px; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2); margin-top: 10px; }
+        
+        /* Navbar */
+        .navbar { display: flex; justify-content: space-around; padding: 15px; position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; }
+        .nav-item { font-size: 24px; opacity: 0.5; transition: 0.3s; }
+        .nav-item.active { opacity: 1; transform: scale(1.2); }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div class="balance-box">
-        <small style="color: #666; font-weight: bold;">БАЛАНС</small><br>
-        <span id="global-balance" class="balance-amount">1000.00</span>
+        <small style="color: #666;">БАЛАНС</small><br>
+        <span id="bal" class="balance-amount">1000.00</span>
     </div>
-    <div onclick="showScreen('profile')" style="text-align: right;">
-        <div style="width: 45px; height: 45px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; font-weight: bold;">AT</div>
-    </div>
+    <div onclick="show('profile')" style="background: var(--gold); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; font-weight: bold;">AT</div>
 </div>
 
 <!-- LOBBY -->
 <div id="lobby" class="screen" style="display: block;">
-    <h2 style="margin-top: 0;">Топ Игры</h2>
+    <h2 style="margin: 0;">Привет, Алексей!</h2>
     <div class="game-grid">
-        <div class="game-card glass" onclick="showScreen('slots')"><i>🎰</i><b>Slots</b></div>
-        <div class="game-card glass" onclick="showScreen('crash')"><i>🚀</i><b>Crash</b></div>
-        <div class="game-card glass" onclick="showScreen('mines')"><i>💣</i><b>Mines</b></div>
-        <div class="game-card glass" onclick="showScreen('apples')"><i>🍎</i><b>Apples</b></div>
+        <div class="game-card glass" onclick="show('slots')"><i>🎰</i><b>Slots</b></div>
+        <div class="game-card glass" onclick="show('crash')"><i>🚀</i><b>Crash</b></div>
+        <div class="game-card glass" onclick="show('mines')"><i>💣</i><b>Mines</b></div>
+        <div class="game-card glass" onclick="show('profile')"><i>👤</i><b>Профиль</b></div>
     </div>
 </div>
 
-<!-- SLOTS -->
+<!-- SLOTS SCREEN -->
 <div id="slots-screen" class="screen">
     <div class="slots-box glass">
         <div id="r1" class="reel">💎</div>
         <div id="r2" class="reel">💎</div>
         <div id="r3" class="reel">💎</div>
-        <div style="position: absolute; width: 100%; height: 2px; background: rgba(255,207,27,0.4); top: 50%;"></div>
     </div>
-    <button class="btn-play" onclick="playSlots()">КРУТИТЬ 100</button>
+    <button class="btn-play" onclick="spin()">КРУТИТЬ (100)</button>
+    <button class="btn-play" style="background: #222; color: #fff;" onclick="show('lobby')">НАЗАД</button>
 </div>
 
-<!-- CRASH -->
-<div id="crash-screen" class="screen">
-    <div class="glass" style="height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px;">
-        <div id="crash-rocket" style="font-size: 50px;">🚀</div>
-        <div id="crash-mult" style="font-size: 40px; font-weight: 900;">1.00x</div>
-    </div>
-    <button id="crash-btn" class="btn-play" onclick="startCrash()">СТАВКА 100</button>
-</div>
-
-<!-- PROFILE (Citations included) -->
+<!-- PROFILE SCREEN -->
 <div id="profile-screen" class="screen">
     <div class="glass" style="padding: 20px;">
-        <h3>Личный кабинет</h3>
-        <div class="profile-info">
-            Имя: <b>Aleksey Pavlovich Turkeev</b><br>
-            Дата рождения: <b>21.03.2004</b><br>
-            Город: <b>Blagoveshchensk</b><br>
-            Статус: <b>Diamond Master</b><br>
-            Специализация: <b>Фасады и Металлоконструкции</b>
-        </div>
+        <h3 style="margin-top:0;">Карточка Мастера</h3>
+        <p>Имя: <b>Aleksey Pavlovich Turkeev</b></p>
+        <p>Дата рождения: <b>21.03.2004</b></p>
+        <p>Город: <b>Blagoveshchensk</b></p>
+        <p>Ранг: <b style="color:#ffcf1b;">MASTER OF CONSTRUCTION</b></p>
+        <hr style="border: 0.5px solid #333;">
+        <p style="font-size: 12px; color: #888;">Ваш профиль синхронизирован с системой арбитража трафика.</p>
     </div>
+    <button class="btn-play" onclick="show('lobby')">В ЛОББИ</button>
 </div>
 
 <div class="navbar glass">
-    <div class="nav-item active" onclick="showScreen('lobby')">🏠</div>
-    <div class="nav-item" onclick="showScreen('slots')">🎰</div>
-    <div class="nav-item" onclick="showScreen('profile')">👤</div>
+    <div class="nav-item" onclick="show('lobby')">🏠</div>
+    <div class="nav-item" onclick="show('slots')">🎰</div>
+    <div class="nav-item" onclick="show('profile')">👤</div>
 </div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
     let balance = 1000;
-    const symbols = ['💎', '7️⃣', '🍒', '🍋', '🍀', '💰'];
+    const symbols = ['💎', '7️⃣', '🍒', '💰', '🍀'];
 
-    function showScreen(id) {
+    function show(id) {
         document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-        document.getElementById(id + (id === 'lobby' || id === 'profile' ? '' : '-screen')).style.display = 'block';
+        const target = id === 'lobby' || id === 'profile' ? id : id + '-screen';
+        document.getElementById(target).style.display = 'block';
         tg.HapticFeedback.impactOccurred('light');
     }
 
     function updateBal() {
-        document.getElementById('global-balance').innerText = balance.toFixed(2);
+        document.getElementById('bal').innerText = balance.toFixed(2);
     }
 
-    // СЛОТЫ
-    function playSlots() {
+    function spin() {
         if(balance < 100) return;
         balance -= 100; updateBal();
         
@@ -226,60 +144,21 @@
                     let s = symbols[Math.floor(Math.random() * symbols.length)];
                     r.innerText = s;
                     res.push(s);
-                    if(res.length === 3) checkSlots(res);
-                }, i * 400);
+                    if(res.length === 3) check(res);
+                }, i * 500);
             });
         }, 1000);
     }
 
-    function checkSlots(res) {
+    function check(res) {
         if(res[0] === res[1] && res[1] === res[2]) {
             balance += 1000;
             tg.HapticFeedback.notificationOccurred('success');
         } else if(res[0] === res[1] || res[1] === res[2] || res[0] === res[2]) {
             balance += 150;
+            tg.HapticFeedback.impactOccurred('medium');
         }
         updateBal();
-    }
-
-    // КРАШ
-    let crashInterval;
-    function startCrash() {
-        if(balance < 100) return;
-        balance -= 100; updateBal();
-        let mult = 1.0;
-        let boom = Math.random() * 3 + 1.1;
-        
-        const btn = document.getElementById('crash-btn');
-        btn.innerText = "ЗАБРАТЬ";
-        btn.onclick = () => {
-            clearInterval(crashInterval);
-            balance += (100 * mult);
-            updateBal();
-            resetCrash();
-        };
-
-        crashInterval = setInterval(() => {
-            mult += 0.03;
-            document.getElementById('crash-mult').innerText = mult.toFixed(2) + 'x';
-            document.getElementById('crash-rocket').style.transform = `translateY(-${(mult-1)*20}px)`;
-            
-            if(mult >= boom) {
-                clearInterval(crashInterval);
-                document.getElementById('crash-mult').innerText = "BOOM!";
-                document.getElementById('crash-mult').style.color = "var(--red)";
-                tg.HapticFeedback.notificationOccurred('error');
-                setTimeout(resetCrash, 2000);
-            }
-        }, 100);
-    }
-
-    function resetCrash() {
-        document.getElementById('crash-btn').innerText = "СТАВКА 100";
-        document.getElementById('crash-btn').onclick = startCrash;
-        document.getElementById('crash-mult').style.color = "white";
-        document.getElementById('crash-mult').innerText = "1.00x";
-        document.getElementById('crash-rocket').style.transform = "translateY(0)";
     }
 </script>
 </body>
