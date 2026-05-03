@@ -5,149 +5,147 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #f39c12; --bg: #0f0f10; --card: #1c1c1e; --green: #2ecc71; --red: #e74c3c; }
-        body { background: var(--bg); color: white; font-family: -apple-system, sans-serif; margin: 0; padding: 10px; overflow-x: hidden; }
+        :root { --gold: #f39c12; --bg: #0b0b0c; --card: #161618; --green: #2ecc71; --red: #ff4757; --blue: #54a0ff; }
+        body { background: var(--bg); color: white; font-family: -apple-system, sans-serif; margin: 0; padding: 10px; overflow: hidden; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #333; }
-        .balance-val { color: var(--gold); font-weight: 800; font-size: 20px; }
+        /* Header */
+        .header { display: flex; justify-content: space-between; background: var(--card); padding: 12px 18px; border-radius: 20px; margin-bottom: 15px; border: 1px solid #222; }
+        .bal-title { font-size: 10px; color: #888; letter-spacing: 1px; }
+        .bal-amount { color: var(--gold); font-size: 22px; font-weight: 900; }
 
-        /* Меню */
-        .lobby-title { font-size: 14px; color: #8e8e93; margin: 10px 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .game-card { background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 12px; border: 1px solid #333; display: flex; align-items: center; position: relative; overflow: hidden; }
-        .game-card::after { content: 'HOT'; position: absolute; right: -15px; top: 10px; background: var(--red); font-size: 10px; padding: 2px 20px; transform: rotate(45deg); font-weight: bold; }
-        .icon-box { font-size: 35px; margin-right: 15px; background: #2c2c2e; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+        /* Lobby */
+        #lobby { display: block; height: 80vh; overflow-y: auto; }
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--card); border-radius: 20px; padding: 15px; border: 1px solid #222; text-align: center; position: relative; }
+        .card.hot::before { content: 'HOT'; position: absolute; top: 8px; right: 8px; background: var(--red); font-size: 8px; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
+        .card .icon { font-size: 40px; margin-bottom: 10px; display: block; }
+        .card b { font-size: 14px; display: block; margin-bottom: 4px; }
+        .card span { font-size: 10px; color: var(--green); }
 
-        /* Сетка Mines */
-        #mines-screen { display: none; text-align: center; }
-        .grid-mines { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0; }
-        .m-cell { background: var(--card); height: 60px; border-radius: 10px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
-        .m-cell.open-win { background: rgba(46, 204, 113, 0.2); border-color: var(--green); }
-        .m-cell.open-lose { background: rgba(231, 76, 60, 0.2); border-color: var(--red); }
+        /* Crash Game */
+        #crash-screen { display: none; text-align: center; }
+        .crash-area { background: var(--card); height: 220px; border-radius: 25px; margin: 20px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #222; position: relative; overflow: hidden; }
+        #rocket { font-size: 50px; transition: 0.1s; position: relative; z-index: 2; }
+        #multiplier { font-size: 45px; font-weight: 900; color: white; margin-top: 10px; z-index: 2; }
+        .crash-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(to top, rgba(84, 160, 255, 0.1), transparent); transition: 0.1s; }
 
-        /* Лента выигрышей */
-        .live-feed { background: rgba(0,0,0,0.5); border-radius: 10px; padding: 10px; font-size: 11px; height: 50px; overflow: hidden; border-left: 3px solid var(--gold); }
-        .feed-item { animation: slideUp 2s infinite; display: flex; justify-content: space-between; margin-bottom: 5px; }
-        @keyframes slideUp { 0% { transform: translateY(20px); opacity: 0; } 20% { transform: translateY(0); opacity: 1; } 80% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
-
-        .btn { background: var(--gold); color: black; border: none; width: 100%; padding: 16px; border-radius: 14px; font-weight: bold; font-size: 16px; transition: 0.1s; }
-        .btn:active { transform: scale(0.98); opacity: 0.8; }
+        .btn { background: var(--gold); color: black; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: bold; font-size: 18px; transition: 0.2s; }
+        .btn:active { transform: scale(0.96); }
+        .btn-stop { background: var(--red); display: none; color: white; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div><span style="font-size: 12px; color: #8e8e93;">WALLET</span><br><span id="bal-val" class="balance-val">1000.00</span></div>
-    <div style="text-align: right;"><span style="font-size: 12px; color: #8e8e93;">VIP ID</span><br><span>#2103</span></div>
+    <div><div class="bal-title">MY WALLET</div><div id="balance" class="bal-amount">1000.00</div></div>
+    <div style="text-align: right;"><div class="bal-title">VIP STATUS</div><div style="color: var(--blue)">DIAMOND</div></div>
 </div>
 
-<div id="main-menu">
-    <div class="lobby-title">Доступные игры</div>
-    <div class="game-card" onclick="showApples()">
-        <div class="icon-box">🍎</div>
-        <div><div style="font-weight: bold;">Apples of Fortune</div><div style="font-size: 12px; color: var(--green);">Max x4.02</div></div>
-    </div>
-    <div class="game-card" onclick="showMines()">
-        <div class="icon-box">💣</div>
-        <div><div style="font-weight: bold;">Mines</div><div style="font-size: 12px; color: var(--green);">Выбирай риск сам</div></div>
-    </div>
-
-    <div class="lobby-title">Live выигрыши</div>
-    <div class="live-feed" id="live-feed">
-        <div class="feed-item"><span>User_772 выиграл</span><span style="color:var(--green);">+450 USDT</span></div>
+<div id="lobby">
+    <div class="game-grid">
+        <div class="card hot" onclick="openGame('apples')">
+            <span class="icon">🍎</span><b>Apples</b><span>x4.02 Max</span>
+        </div>
+        <div class="card" onclick="openGame('crash')">
+            <span class="icon">🚀</span><b>Crash</b><span>Unlimited</span>
+        </div>
+        <div class="card" style="opacity: 0.4;">
+            <span class="icon">💣</span><b>Mines</b><span>Soon</span>
+        </div>
+        <div class="card" style="opacity: 0.4;">
+            <span class="icon">🎡</span><b>Wheel</b><span>Soon</span>
+        </div>
     </div>
 </div>
 
-<!-- ЭКРАН МИН -->
-<div id="mines-screen">
-    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">MINES</div>
-    <div id="mines-info" style="color: var(--gold); margin-bottom: 10px;">Коэффициент: x1.00</div>
-    <div class="grid-mines" id="mines-grid"></div>
-    <button id="mines-action" class="btn" onclick="startMines()">СТАВКА 100</button>
-    <button id="mines-back" class="btn" style="background: #333; color: white; margin-top: 10px;" onclick="location.reload()">В МЕНЮ</button>
+<!-- Экран КРАШ -->
+<div id="crash-screen">
+    <div class="crash-area">
+        <div id="rocket">🚀</div>
+        <div id="multiplier">1.00x</div>
+        <div id="crash-bg" class="crash-bg"></div>
+    </div>
+    <button id="crash-start" class="btn" onclick="startCrash()">BET 100</button>
+    <button id="crash-stop" class="btn btn-stop" onclick="stopCrash()">CASH OUT</button>
+    <button class="btn" style="background:#222; color:white; margin-top:10px;" onclick="location.reload()">LOBBY</button>
 </div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
     let balance = 1000;
-    let minesPos = [];
-    let openedCells = 0;
-    let isGameActive = false;
+    let crashInterval;
+    let currentMult = 1.00;
+    let isCrashed = false;
 
-    // Генерация ленты
-    const names = ["Aleksei", "Ivan", "Dmitry", "Max", "User_99", "Rich_Boi"];
-    setInterval(() => {
-        const feed = document.getElementById('live-feed');
-        const name = names[Math.floor(Math.random()*names.length)];
-        const win = (Math.random()*500 + 50).toFixed(0);
-        feed.innerHTML = `<div class="feed-item"><span>${name} выиграл</span><span style="color:var(--green);">+${win} USDT</span></div>`;
-    }, 3000);
-
-    function showMines() {
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('mines-screen').style.display = 'block';
-        createMinesGrid();
+    function openGame(game) {
+        document.getElementById('lobby').style.display = 'none';
+        document.getElementById(game + '-screen').style.display = 'block';
     }
 
-    function createMinesGrid() {
-        const grid = document.getElementById('mines-grid');
-        grid.innerHTML = '';
-        for(let i=0; i<25; i++) {
-            let cell = document.createElement('div');
-            cell.className = 'm-cell';
-            cell.innerHTML = '💎';
-            cell.onclick = () => clickMine(i);
-            grid.appendChild(cell);
-        }
-    }
-
-    function startMines() {
+    // ЛОГИКА CRASH
+    function startCrash() {
         if(balance < 100) return;
         balance -= 100;
-        updateBal();
-        minesPos = [];
-        while(minesPos.length < 3) {
-            let r = Math.floor(Math.random()*25);
-            if(!minesPos.includes(r)) minesPos.push(r);
-        }
-        isGameActive = true;
-        openedCells = 0;
-        createMinesGrid();
-        document.getElementById('mines-action').innerHTML = "ЗАБРАТЬ (x1.00)";
-        document.getElementById('mines-action').style.background = "var(--green)";
-        document.getElementById('mines-action').onclick = cashoutMines;
+        updateUI();
+        
+        isCrashed = false;
+        currentMult = 1.00;
+        let crashPoint = (Math.random() * 5 + 1).toFixed(2); // Рандомный момент взрыва
+        
+        document.getElementById('crash-start').style.display = 'none';
+        document.getElementById('crash-stop').style.display = 'block';
+        document.getElementById('rocket').style.transform = 'translateY(0px)';
+        document.getElementById('multiplier').style.color = 'white';
+
+        crashInterval = setInterval(() => {
+            currentMult += 0.01;
+            document.getElementById('multiplier').innerText = currentMult.toFixed(2) + 'x';
+            
+            // Вибрация нарастает
+            if(currentMult > 2) tg.HapticFeedback.impactOccurred('light');
+
+            // Визуальный подъем
+            let shift = (currentMult - 1) * 15;
+            document.getElementById('rocket').style.transform = `translateY(-${shift}px) rotate(${-shift/2}deg)`;
+            document.getElementById('crash-bg').style.height = (currentMult * 10) + '%';
+
+            if(currentMult >= crashPoint) {
+                doCrash();
+            }
+        }, 50);
     }
 
-    function clickMine(i) {
-        if(!isGameActive) return;
-        let cell = document.getElementById('mines-grid').children[i];
-        if(cell.classList.contains('open-win')) return;
-
-        if(minesPos.includes(i)) {
-            cell.innerHTML = '💣';
-            cell.classList.add('open-lose');
-            tg.HapticFeedback.notificationOccurred('error');
-            isGameActive = false;
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            cell.innerHTML = '💎';
-            cell.classList.add('open-win');
-            tg.HapticFeedback.impactOccurred('medium');
-            openedCells++;
-            let curCoef = (1 + (openedCells * 0.25)).toFixed(2);
-            document.getElementById('mines-info').innerHTML = `Коэффициент: x${curCoef}`;
-            document.getElementById('mines-action').innerHTML = `ЗАБРАТЬ ${(100*curCoef).toFixed(0)}`;
-        }
+    function doCrash() {
+        clearInterval(crashInterval);
+        isCrashed = true;
+        tg.HapticFeedback.notificationOccurred('error');
+        document.getElementById('multiplier').innerText = 'BOOM!';
+        document.getElementById('multiplier').style.color = var(--red);
+        document.getElementById('rocket').innerHTML = '💥';
+        
+        setTimeout(() => {
+            document.getElementById('rocket').innerHTML = '🚀';
+            document.getElementById('crash-start').style.display = 'block';
+            document.getElementById('crash-stop').style.display = 'none';
+        }, 2000);
     }
 
-    function cashoutMines() {
-        let curCoef = (1 + (openedCells * 0.25));
-        balance += (100 * curCoef);
+    function stopCrash() {
+        if(isCrashed) return;
+        clearInterval(crashInterval);
+        let win = 100 * currentMult;
+        balance += win;
+        updateUI();
         tg.HapticFeedback.notificationOccurred('success');
-        location.reload();
+        
+        document.getElementById('multiplier').style.color = var(--green);
+        setTimeout(() => location.reload(), 1500);
     }
 
-    function updateBal() { document.getElementById('bal-val').innerHTML = balance.toFixed(2); }
+    function updateUI() {
+        document.getElementById('balance').innerText = balance.toFixed(2);
+    }
 </script>
 </body>
 </html>
